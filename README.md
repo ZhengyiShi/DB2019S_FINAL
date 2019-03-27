@@ -6,7 +6,7 @@ Python 3.6
 psycopg2, numpy, pandas
 
 ## Files:
-lod_data.py - CSV loader by Ian
+load_data.py - CSV loader by Ian
 Utils.py, XMLparser.py, MainDebug.py - XML loader by Simon
 
 ## Members:
