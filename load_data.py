@@ -1,13 +1,14 @@
 import psycopg2
 import psycopg2.extras
 import csv
+import os
 
 if __name__ == '__main__':
 
-	paymentFile = "Payment_and_value_of_care_-_Hospital.csv"
-	compFile = "Complications_and_Deaths_-_Hospital.csv"
+	paymentFile = os.getcwd() + "/DATA/Payment_and_value_of_care_-_Hospital.csv"
+	compFile = os.getcwd() + "/DATA/Complications_and_Deaths_-_Hospital.csv"
 
-	conn = psycopg2.connect("host = 'localhost' dbname = 'postgres' user = 'postgres' password = 'HYhSZqd'")
+	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres'")
 	cur = conn.cursor()
 
 	#To ensure idempotent behavior, wipe the tables at the start
@@ -40,7 +41,7 @@ if __name__ == '__main__':
 			try:
 				holder = float(info2[2])
 			except ValueError:
-				info2[2] = -1.0
+				continue #if no score, exlude it
 			try:
 				holder = float(info2[3])
 			except ValueError:
@@ -86,7 +87,7 @@ if __name__ == '__main__':
 			try:
 				holder = int(info6[2])
 			except ValueError:
-				info6[2] = -1
+				continue #if no payment, exclude it
 			try:
 				holder = int(info6[3])
 			except ValueError:
