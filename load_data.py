@@ -7,7 +7,7 @@ if __name__ == '__main__':
 	paymentFile = "Payment_and_value_of_care_-_Hospital.csv"
 	compFile = "Complications_and_Deaths_-_Hospital.csv"
 
-	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres'")
+	conn = psycopg2.connect("host = 'localhost' dbname = 'postgres' user = 'postgres' password = 'HYhSZqd'")
 	cur = conn.cursor()
 
 	#To ensure idempotent behavior, wipe the tables at the start
@@ -100,9 +100,13 @@ if __name__ == '__main__':
 			except ValueError:
 				info6[5] = -1
 			info7 = list(row[g] for g in paymentCols)
-			cur.execute("INSERT INTO hospital_payment VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;", (str(info6[0]),str(info6[1]), str(info6[2]),str(info6[3]), \
-									                                                                                str(info6[4]),str(info6[5]),str(info6[6])))
+
 			cur.execute("INSERT INTO payment VALUES (%s, %s) ON CONFLICT DO NOTHING;", (str(info7[0]),str(info7[1])))
+
+			if str(info6[4]) != str(-1):
+				cur.execute("INSERT INTO hospital_payment VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;", (str(info6[0]),str(info6[1]), str(info6[2]),str(info6[3]), \
+									                                                                                str(info6[4]),str(info6[5]),str(info6[6])))
+			
 
 
 
