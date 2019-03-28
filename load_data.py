@@ -5,8 +5,8 @@ import os
 
 if __name__ == '__main__':
 
-	paymentFile = os.getcwd() + "/DATA/Payment_and_value_of_care_-_Hospital.csv"
-	compFile = os.getcwd() + "/DATA/Complications_and_Deaths_-_Hospital.csv"
+	paymentFile = "Payment_and_value_of_care_-_Hospital.csv"
+	compFile = "Complications_and_Deaths_-_Hospital.csv"
 
 	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres'")
 	cur = conn.cursor()

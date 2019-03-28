@@ -1,0 +1,2 @@
+paymentFile: https://data.medicare.gov/api/views/c7us-v4mf/rows.csv?accessType=DOWNLOAD
+compFile: https://data.medicare.gov/api/views/ynj2-r877/rows.csv?accessType=DOWNLOAD
