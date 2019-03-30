@@ -2,11 +2,9 @@ import psycopg2
 import psycopg2.extras
 import csv
 import os
+import Utils
 
 if __name__ == '__main__':
-
-	paymentFile = "Payment_and_value_of_care_-_Hospital.csv"
-	compFile = "Complications_and_Deaths_-_Hospital.csv"
 
 	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres'")
 	cur = conn.cursor()
@@ -30,7 +28,7 @@ if __name__ == '__main__':
 	compCols = [9,8] #measureID, measureDesc (COMP FILE)
 	trCols = [16,17,0] #dateStart, dateEnd, providerID (COMP FILE)
 
-	with open(compFile,'r') as cf:
+	with open(Utils.compFile,'r') as cf:
 		next(cf) #skip the header
 		reader = csv.reader(cf)
 		for row in reader:
@@ -67,7 +65,7 @@ if __name__ == '__main__':
 			cur.execute("INSERT INTO complication VALUES (%s, %s) ON CONFLICT DO NOTHING;", (str(info4[0]),str(info4[1])))
 			cur.execute("INSERT INTO time_range VALUES (%s, %s, %s) ON CONFLICT DO NOTHING;", (str(info5[0]),str(info5[1]),str(info5[2])))
 
-	with open(paymentFile,'r') as pf:
+	with open(Utils.paymentFile,'r') as pf:
 		next(pf) #skip the header
 		reader = csv.reader(pf)
 		for row in reader:

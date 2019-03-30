@@ -5,9 +5,10 @@ Database System 2019 Spring Final Project
 Python 3.6  
 psycopg2, numpy, pandas  
   
-## Files:  
-load_data.py - CSV loader by Ian  
-Utils.py, XMLparser.py, MainDebug.py - XML loader by Simon  
+## Datasets Source
+Hospital Payment: https://data.medicare.gov/api/views/c7us-v4mf/rows.csv?accessType=DOWNLOAD
+Deaths and Complications: https://data.medicare.gov/api/views/ynj2-r877/rows.csv?accessType=DOWNLOAD
+
   
 ## Members:  
 Yihao Huang  
