@@ -9,6 +9,9 @@ if __name__ == '__main__':
 	conn = psycopg2.connect("dbname = 'postgres' user = 'postgres'")
 	cur = conn.cursor()
 
+	paymentFile = "DATA/Payment_and_value_of_care_-_Hospital.csv"
+	compFile = "DATA/Complications_and_Deaths_-_Hospital.csv"
+
 	#To ensure idempotent behavior, wipe the tables at the start
 	cur.execute("DELETE FROM hospital;")
 	cur.execute("DELETE FROM hospital_payment;")
@@ -20,7 +23,7 @@ if __name__ == '__main__':
 	conn.commit()
 
 	#Now populate the tables
-	hospitalCols = [0,1,2,3,7] #providerID, hospitalName, address, cityName, phone (COMP FILE)
+	hospitalCols = [0,1,2,5,7] #providerID, hospitalName, address, zip, phone (COMP FILE)
 	hospPayCols = [0,9,12,13,14,11,10] #providerID, paymentID, paymentAmount, payLow, payHigh, quantity, compare (PAYMENT FILE)
 	hospCompCols = [0,9,12,13,14,11,10] #providerID, measureID, compScore, compLow, compHigh, quantity, compare (COMP FILE)
 	cityCols = [3,6,5,4] #cityName, countyName, zip, stateName (EITHER FILE)
@@ -28,7 +31,7 @@ if __name__ == '__main__':
 	compCols = [9,8] #measureID, measureDesc (COMP FILE)
 	trCols = [16,17,0] #dateStart, dateEnd, providerID (COMP FILE)
 
-	with open(Utils.compFile,'r') as cf:
+	with open(compFile,'r') as cf:
 		next(cf) #skip the header
 		reader = csv.reader(cf)
 		for row in reader:
@@ -49,7 +52,7 @@ if __name__ == '__main__':
 			except ValueError:
 				info2[4] = -1.0
 			try:
-				holder = int(info2[5]) 
+				holder = int(info2[5])
 			except ValueError:
 				info2[5] = -1
 
@@ -65,7 +68,7 @@ if __name__ == '__main__':
 			cur.execute("INSERT INTO complication VALUES (%s, %s) ON CONFLICT DO NOTHING;", (str(info4[0]),str(info4[1])))
 			cur.execute("INSERT INTO time_range VALUES (%s, %s, %s) ON CONFLICT DO NOTHING;", (str(info5[0]),str(info5[1]),str(info5[2])))
 
-	with open(Utils.paymentFile,'r') as pf:
+	with open(paymentFile,'r') as pf:
 		next(pf) #skip the header
 		reader = csv.reader(pf)
 		for row in reader:
@@ -105,10 +108,9 @@ if __name__ == '__main__':
 			if str(info6[4]) != str(-1):
 				cur.execute("INSERT INTO hospital_payment VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;", (str(info6[0]),str(info6[1]), str(info6[2]),str(info6[3]), \
 									                                                                                str(info6[4]),str(info6[5]),str(info6[6])))
-			
+
 
 
 
 
 	conn.commit()
-

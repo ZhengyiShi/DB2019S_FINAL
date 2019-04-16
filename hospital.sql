@@ -14,17 +14,17 @@ CREATE TABLE hospital(
 	providerID VARCHAR(255) PRIMARY KEY,
 	hospitalName VARCHAR(255),
 	address VARCHAR(255),
-	cityName VARCHAR(255), --refers to city table
+	zip VARCHAR(5), --refers to city table
 	phone VARCHAR(255)
 );
 
 CREATE TABLE hospital_payment (
 	providerID VARCHAR(255),
-	paymentID VARCHAR(255), 
+	paymentID VARCHAR(255),
 	paymentAmount BIGINT, --"payment" column of value of care table
 	payLow INT, --low estimate for procedure
 	payHigh INT, --high estimate for procedure
-	quantity INT, --the "denominator" column, or how many data points/subjects 
+	quantity INT, --the "denominator" column, or how many data points/subjects
 	compare VARCHAR(255), --higher/neutral/lower than national avg
 	UNIQUE (providerID, paymentID)
 );
@@ -42,10 +42,10 @@ CREATE TABLE hospital_comp(
 );
 
 CREATE TABLE city(
-	cityName VARCHAR(255) PRIMARY KEY,
+	cityName VARCHAR(255),
 	countyName VARCHAR(255),
-	zip VARCHAR(5),
-	stateName VARCHAR(2) --abbreviation 
+	zip VARCHAR(5) PRIMARY KEY,
+	stateName VARCHAR(2) --abbreviation
 );
 
 CREATE TABLE payment(
@@ -69,9 +69,3 @@ CREATE TABLE time_range
     dateEnd VARCHAR(255),      -- overlapped time end: the earlier one
     providerID VARCHAR(255) PRIMARY KEY UNIQUE
 );
-
-
-
-
-
-
