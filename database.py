@@ -15,18 +15,41 @@ def safeInput():
         return "ERROR"
     return text
 #Creates part of the inner query pertaining to location
-def locationInner(zip,state,city):
-    #Formulate location inner query
-    if (zip != ""): #zip search
-        deststr = "WHERE hospital.zip = '" + zip +"' AND city.zip = '"+zip+"'"
-    elif (state != ""): #state
-        deststr = "WHERE hospital.zip = city.zip AND city.stateName = '" + state + "'"
-        if (city != ""): #city
-            deststr = deststr + "AND city.cityName = '" + city + "'"
-    else:
-        return "(SELECT hospital.providerID as pid, hospitalName as name, hospital.address as address,city.cityName as city, city.stateName as state, hospital.phone as phone from hospital,city WHERE hospital.zip = city.zip) as loc,"
-    deststr = "(SELECT hospital.providerID as pid, hospitalName as name, hospital.address as address,city.cityName as city, city.stateName as state, hospital.phone as phone FROM hospital, city " + deststr + ") as loc,"
-    return deststr
+def locationInner():
+        zip = "ERROR"
+        state = "ERROR"
+        city = "ERROR"
+        #get the zip code
+        print("\nIf you know the zip code you want to search, enter here. \nOtherwise, please leave blank\n")
+        while (zip == "ERROR"):
+            zip = safeInput()
+            if (len(zip) > 0 and len(zip) != 5):
+                print("ERROR: invalid input")
+                zip = "ERROR"
+        if (zip == ""):
+            #Get the State
+            print("\nIf you want to search a specific state for hospitals, enter here. \nOtherwise, please leave blank\n")
+            while (state == "ERROR"):
+                state = safeInput()
+                if (len(state) >0 and len(state) != 2):
+                    print("ERROR: invalid input")
+                    state = "ERROR"
+            #Get the city if state wasn't empty
+            if (state != ""):
+                print("\nIf you want to search a specific city, enter here. \nOtherwise, please leave blank\n")
+                while(city == "ERROR"):
+                    city = safeInput()
+        #Formulate location inner query
+        if (zip != ""): #zip search
+            deststr = "WHERE hospital.zip = '" + zip +"' AND city.zip = '"+zip+"'"
+        elif (state != ""): #state
+            deststr = "WHERE hospital.zip = city.zip AND city.stateName = '" + state + "'"
+            if (city != ""): #city
+                deststr = deststr + "AND city.cityName = '" + city + "'"
+        else:
+            return "(SELECT hospital.providerID as pid, hospitalName as name, hospital.address as address,city.cityName as city, city.stateName as state, hospital.phone as phone from hospital,city WHERE hospital.zip = city.zip) as loc,"
+        deststr = "(SELECT hospital.providerID as pid, hospitalName as name, hospital.address as address,city.cityName as city, city.stateName as state, hospital.phone as phone FROM hospital, city " + deststr + ") as loc,"
+        return deststr
 
 #Determines the order of the results displayed
 def orderInner(mode):
@@ -74,11 +97,8 @@ def procedureQuery():
     conn = psycopg2.connect("dbname = 'postgres' user = 'postgres'")
     cur = conn.cursor()
     while(1):
-        care = "ERROR"
-        state = "ERROR"
-        city = "ERROR"
-        zip = "ERROR"
-        sort = "ERROR"
+        sort = "ERROR" #how to sort results
+        care = "ERROR" #type of care to search for
 
         #initial prompt
         print("\nPROCEDURE SEARCH: Choose a type of care/service to search for:\n"+
@@ -92,32 +112,13 @@ def procedureQuery():
             if (care not in ["1","2","3","4","BACK"]):
                 print("ERROR: invalid input")
                 care = "ERROR"
-        if (care == "BACK"):
+        if (care == "BACK"): #BACK TO THE MAIN LOOP
             break
+
         paystr = paytypes[int(care)-1]
         compstr = comptypes[int(care)-1]
+        destq = locationInner() #here so the client gets the prompts in the correct order
 
-        #INFORMATION block
-        #get the zip code
-        print("\nIf you know the zip code you want to search, enter here. \nOtherwise, please leave blank\n")
-        while (zip == "ERROR"):
-            zip = safeInput()
-            if (len(zip) > 0 and len(zip) != 5):
-                print("ERROR: invalid input")
-                zip = "ERROR"
-        if (zip == ""):
-            #Get the State
-            print("\nIf you want to search a specific state for hospitals, enter here. \nOtherwise, please leave blank\n")
-            while (state == "ERROR"):
-                state = safeInput()
-                if (len(state) >0 and len(state) != 2):
-                    print("ERROR: invalid input")
-                    state = "ERROR"
-            #Get the city if state wasn't empty
-            if (state != ""):
-                print("\nIf you want to search a specific city, enter here. \nOtherwise, please leave blank\n")
-                while(city == "ERROR"):
-                    city = safeInput()
         #Order by
         print("\nPlease specify how the data is ordered:\n"+\
                 "\t1. Alphabetically, by hospital name\n"+\
@@ -132,7 +133,6 @@ def procedureQuery():
                 sort = "ERROR"
 
         #QUERY BUILD BLOCK
-        destq = locationInner(zip,state,city)
         payq = "(SELECT paymentAmount as cost,providerID FROM hospital_payment WHERE paymentID like '"+paystr+"') as paym,"
         compq = "(SELECT compScore as score,providerID FROM hospital_comp WHERE measureID like '"+compstr+"') as comp"
         orderq = orderInner(int(sort))
