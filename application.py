@@ -5,13 +5,13 @@ import database as db
 def initialPrompt():
     print("\nMAIN: Please select one of the following query categories:\n"+\
             "\t1. Specific procedure lookup\n"+\
-            "\t2. Hospital contact information / lookup\n"+\
+            "\t2. Hospital complications lookup\n"+\
             "\tEXIT. Exit the program\n")
 
 #hospitalQuery not yet implemented
 if __name__ == "__main__":
     while(1):
-        functions = {"1": db.procedureQuery,"2": db.hospitalQuery}
+        functions = {"1": db.procedureQuery,"2": db.compQuery}
         initialPrompt()
         command = db.safeInput()
         if (command == "EXIT" ):

@@ -152,5 +152,92 @@ def procedureQuery():
         else:
             print("\nNo results found")
 
-def hospitalQuery():
-    print("This is hospitalQuery()")
+def compQuery():
+    conn = psycopg2.connect("dbname = 'postgres' user = 'postgres'")
+    cur = conn.cursor()
+    while(1):
+        response="ERROR"
+        num = "ERROR"
+        print("\nPlease select a hospital to search for\n"+\
+              "or type BACK to return to previous prompt\n")
+        while(response == "ERROR"):
+            response = safeInput()
+            if (response == "ERROR"):
+                print("ERROR: invalid input")
+        if (response == "BACK"):
+            break
+        searchq = "SELECT DISTINCT hospital.hospitalName, hospital.zip FROM hospital, hospital_comp WHERE hospital.providerID = hospital_comp.providerID AND hospital.hospitalName LIKE '%"+response+"%';"
+        cur.execute(searchq)
+        rows = cur.fetchall()
+
+        if(rows): #We have some matches, time to ask which hospital
+            print("\n   NAME                                 ZIP CODE")
+            count =1
+            for a,b in rows:
+                print("{:36}".format(str(count)+". "+a)[:36]+"    "+b)
+                count+=1
+            print("\nFrom the above results, please select a hospital to query\n")
+            while(num == "ERROR"):
+                num = safeInput()
+                if (not num.isdigit()):
+                    num = "ERROR"
+                    print("ERROR: invalid input")
+                elif (int(num) not in range(1,count)):
+                    num = "ERROR"
+                    print("ERROR: invalid input")
+            num = int(num)-1
+            hosp = rows[num][0]
+            zip = rows[num][1]
+            finalq = "SELECT hospital.hospitalName, hospital.zip, hospital_comp.measureID, hospital_comp.compScore,hospital_comp.quantity "+\
+                        "FROM hospital, hospital_comp " + \
+                        "WHERE hospital.providerID = hospital_comp.providerID " + \
+                        "AND hospital.zip = '"+zip+"' " + \
+                        "AND hospital.hospitalName like '"+hosp+"%'"
+            print(finalq)
+            cur.execute(finalq)
+            rows = cur.fetchall()
+            print("\nSTATISTICS FOR: "+hosp+"")
+            print("COMPLICATION                                    SCORE     SUBJECTS")
+            for a,b,c,d,e in rows:
+                if(d == -1 or e == -1):
+                    continue
+                if (c == "COMP_HIP_KNEE"):
+                    print("{:48}".format("Complications for hip/knee patients")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "MORT_30_AMI"):
+                    print("{:48}".format("Death rate for heart attack patients")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "MORT_30_CABG"):
+                    print("{:48}".format("Death rate for CABG surgery patients")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "MORT_30_COPD"):
+                    print("{:48}".format("Death rate for COPD patients")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "MORT_30_HF"):
+                    print("{:48}".format("Death rate for heart failure patients")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "MORT_30_PN"):
+                    print("{:48}".format("Death rate for pneumonia patients")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "MORT_30_STK"):
+                    print("{:48}".format("Death rate for stroke patients")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "PSI_10_POST_KIDNEY"):
+                    print("{:48}".format("Kidney injuries post-operation")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "PSI_11_POST_RESP"):
+                    print("{:48}".format("Respiratory failure post-operation")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "PSI_12_POSTOP_PULMEMB_DVT"):
+                    print("{:48}".format("Serious blood clot post-operation")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "PSI_13_POST_SEPSIS"):
+                    print("{:48}".format("Blood stream infection post-operation")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "PSI_14_POSTOP_DEHIS"):
+                    print("{:48}".format("A wound re-opened post operation")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "PSI_15_ACC_LAC"):
+                    print("{:48}".format("Accidental cuts during treatment")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "PSI_3_ULCER"):
+                    print("{:48}".format("Pressure sores")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "PSI_4_SURG_COMP"):
+                    print("{:48}".format("Deaths post-operation that were treatable")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "PSI_6_IAT_PTX"):
+                    print("{:48}".format("Collapsed lungs due to treatments")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "PSI_8_POST_HIP"):
+                    print("{:48}".format("Broken hip from fall post-procedure")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "PSI_90_SAFETY"):
+                    print("{:48}".format("Serious general complications")+"{:6}".format(str(d))+"    "+str(e))
+                elif (c == "PSI_9_POST_HEM"):
+                    print("{:48}".format("Hemorrhage or Hematoma rate")+"{:6}".format(str(d))+"    "+str(e))
+        else: #no matches, loop back
+            print("\nNo results found\n")
