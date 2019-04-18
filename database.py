@@ -135,7 +135,7 @@ def procedureQuery():
         destq = locationInner(zip,state,city)
         payq = "(SELECT paymentAmount as cost,providerID FROM hospital_payment WHERE paymentID like '"+paystr+"') as paym,"
         compq = "(SELECT compScore as score,providerID FROM hospital_comp WHERE measureID like '"+compstr+"') as comp"
-        orderq = orderInner(int(care))
+        orderq = orderInner(int(sort))
 
         finalq = "SELECT loc.pid,loc.name,loc.address, loc.city, loc.state, loc.phone, paym.cost,comp.score" + \
                  " FROM " + destq + payq + compq + \
@@ -146,7 +146,7 @@ def procedureQuery():
         rows = cur.fetchall()
         if(rows): #results found
             #pid,name,address,city,state,phone,cost,score
-            print("\nNAME                COST       SCORE    ADDRESS                           CITY          STATE    PHONE")
+            print("\nNAME                COST       SCORE    ADDRESS                         CITY            STATE    PHONE")
             for a,b,c,d,e,f,g,h in rows:
                 print("{:<16}".format(b)[:16] + "    " + "{:<7}".format(g)[:7] + "    " +"{:<5}".format(h)[:5]+"\t"+"{:<30}".format(c)[:28]+"    "+"{:<12}".format(d)[:12]+"\t"+"{:<5}".format(e)[:5]+ "    "+f )
         else:
