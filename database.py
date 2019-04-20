@@ -14,7 +14,7 @@ def safeInput():
     if ";" in text:
         return "ERROR"
     return text
-#Creates part of the inner query pertaining to location
+#Creates part of the inner query pertaining to location, used in procedureQuery()
 def locationInner():
         zip = "ERROR"
         state = "ERROR"
@@ -147,7 +147,11 @@ def procedureQuery():
         if(rows): #results found
             #pid,name,address,city,state,phone,cost,score
             print("\nNAME                COST       SCORE    ADDRESS                         CITY            STATE    PHONE")
+            count = 0
             for a,b,c,d,e,f,g,h in rows:
+                if (count == 25): #HARD CODED LIMIT
+                    break
+                count+=1
                 print("{:<16}".format(b)[:16] + "    " + "{:<7}".format(g)[:7] + "    " +"{:<5}".format(h)[:5]+"\t"+"{:<30}".format(c)[:28]+"    "+"{:<12}".format(d)[:12]+"\t"+"{:<5}".format(e)[:5]+ "    "+f )
         else:
             print("\nNo results found")
@@ -241,3 +245,97 @@ def compQuery():
                     print("{:48}".format("Hemorrhage or Hematoma rate")+"{:6}".format(str(d))+"    "+str(e))
         else: #no matches, loop back
             print("\nNo results found\n")
+
+def avgQuery():
+    conn = psycopg2.connect("dbname = 'postgres' user = 'postgres'")
+    cur = conn.cursor()
+    while(1):
+        print("\nPlease select a statistic to measure for averages\n"+\
+              "\t1. Prices\n"+\
+              "\t2. Complication Scores\n"+\
+              "\tBACK. Return to MAIN prompt\n")
+        mode = "ERROR"
+        while(mode =="ERROR"):
+            mode=safeInput()
+            if(mode not in ["1","2","BACK"]):
+                print("ERROR: invalid input")
+                mode="ERROR"
+        if(mode=="BACK"):
+            break
+
+        destq = locationInner()
+
+        if(mode == "1"):
+            types = [0,0,0,0] #AMI,HF,H/K,PN
+            counts = [0,0,0,0]
+            firstq = "SELECT hospital_payment.paymentID,hospital_payment.paymentAmount FROM "
+            lastq = " hospital_payment WHERE loc.pid = hospital_payment.providerID;"
+            finalq = firstq + destq + lastq
+            cur.execute(finalq)
+            rows = cur.fetchall()
+            for a,b, in rows:
+                if ("AMI" in a):
+                    types[0]+=int(b)
+                    counts[0] +=1
+                elif("HF" in a):
+                    types[1]+=int(b)
+                    counts[1]+=1
+                elif("HIP" in a):
+                    types[2]+=int(b)
+                    counts[2]+=1
+                elif("PN" in a):
+                    types[3]+=int(b)
+                    counts[3]+=1
+            print("\nStatistic                                       Price     Hospital(s)")
+            if (counts[0] == 0):
+                print("No statistics found for heart-attack care")
+            else:
+                print("{:48}".format("Average price for heart-attack care: ")[:48]+"{:10}".format(str(round(types[0]/counts[0])))[:10]+str(counts[0]))
+            if (counts[1] == 0):
+                print("No statistics found for heart-failure care")
+            else:
+                print("{:48}".format("Average price for heart-failure care: ")[:48]+"{:10}".format(str(round(types[1]/counts[1])))[:10]+str(counts[1]))
+            if (counts[2] == 0):
+                print("No statistics found for hip/knee recplacement")
+            else:
+                print("{:48}".format("Average price for hip/knee replacement: ")[:48]+"{:10}".format(str(round(types[2]/counts[2])))[:10]+str(counts[2]))
+            if (counts[3] == 0):
+                print("No statistics found for pneumonia care")
+            else:
+                print("{:48}".format("Average price for pneumonia care: ")[:48]+"{:10}".format(str(round(types[3]/counts[3])))[:10]+str(counts[3]))
+        if(mode =="2"):
+            #codes
+            l = ['MORT_30_AMI', 'MORT_30_COPD', 'MORT_30_HF',
+            'MORT_30_PN', 'MORT_30_STK', 'PSI_12_POSTOP_PULMEMB_DVT',
+            'PSI_14_POSTOP_DEHIS', 'PSI_15_ACC_LAC', 'PSI_3_ULCER',
+            'PSI_6_IAT_PTX', 'PSI_8_POST_HIP', 'PSI_90_SAFETY',
+            'PSI_9_POST_HEM', 'PSI_10_POST_KIDNEY','PSI_11_POST_RESP',
+             'PSI_13_POST_SEPSIS', 'COMP_HIP_KNEE', 'MORT_30_CABG', 'PSI_4_SURG_COMP']
+            #descriptions for printing
+            desc = ["death rate for heart attack patients","death rate for COPD patients","death rate for heart failure patients",
+                    "death rate for pneumonia patients","death rate for stroke patients","rate of serious post-op blood clotting",
+                    "rate of post-op wound splitting","rate of accidental cuts/lacerations","rate of pressure sores",
+                    "rate of lung collapse during treatment","rate of broken hip(s) post surgery","rate of serious general complications",
+                    "rate of serious hemmoraging or hematoma during care","rate of acute kidney injury during care","rate of post-op respiratory failure",
+                    "rate of post-op blood stream infection","rate of complications for hip/knee patients","death rate for CABG patients","death rate for patients with treatable complications"]
+            #used to pool stats
+            types = [0]*19
+            counts = [0]*19
+
+            #BUILD THE QUERY and EXECUTE
+            firstq = "SELECT hospital_comp.measureID,hospital_comp.compScore FROM "
+            lastq = " hospital_comp WHERE loc.pid = hospital_comp.providerID;"
+            finalq = firstq + destq + lastq
+            cur.execute(finalq)
+            rows = cur.fetchall()
+
+            #FILL THE STATS and PRINT
+            print("\nStatistic                                                           Score     Hospital(s)")
+            for a,b in rows:
+                types[l.index(a)] += b
+                counts[l.index(a)] += 1
+            for x in range(0,19):
+                if (counts[x] == 0):
+                    print("No statistics found for "+desc[x])
+                else:
+                    print("Average "+"{:60}".format(desc[x])[:60]+"{:6}".format(str(types[x]))[:6]+"    "+"{:6}".format(str(counts[x]))[:6])
